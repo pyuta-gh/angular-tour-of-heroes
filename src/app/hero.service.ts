@@ -26,6 +26,17 @@ export class HeroService {
       catchError(this.handleError<Hero[]>('getHeroes', []))
     );
   }
+  /* 検索語を含むヒーローを取得する */
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      // 検索語がない場合、空のヒーロー配列を返す
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+      tap((_) => this.log(`found heroes matching "${term}"`)),
+      catchError(this.handleError<Hero[]>('searchHeroes', []))
+    );
+  }
 
   /**
    * 失敗したHttp操作を処理します。
@@ -71,6 +82,17 @@ export class HeroService {
     return this.http.put(this.heroesUrl, hero, this.httpOptions).pipe(
       tap((_) => this.log(`updated hero id=${hero.id}`)),
       catchError(this.handleError<any>('updateHero'))
+    );
+  }
+
+  /** DELETE: サーバーからヒーローを削除 */
+  deleteHero(hero: Hero | number): Observable<Hero> {
+    const id = typeof hero === 'number' ? hero : hero.id;
+    const url = `${this.heroesUrl}/${id}`;
+
+    return this.http.delete<Hero>(url, this.httpOptions).pipe(
+      tap((_) => this.log(`deleted hero id=${id}`)),
+      catchError(this.handleError<Hero>('deleteHero'))
     );
   }
   /** HeroServiceのメッセージをMessageServiceを使って記録 */
